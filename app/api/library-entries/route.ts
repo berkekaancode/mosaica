@@ -1,4 +1,4 @@
 import { NextResponse } from "next/server";
 import { addToLibrary, listLibrary } from "@/lib/app-services";
-export async function GET() { return NextResponse.json({data:await listLibrary()}); }
+export async function GET(request: Request) { try { const params = new URL(request.url).searchParams; return NextResponse.json({data:await listLibrary(Object.fromEntries(params.entries()))}); } catch { return NextResponse.json({ error: "Geçerli kütüphane filtreleri seçin." }, { status: 400 }); } }
 export async function POST(request: Request) { try { const {contentId}=await request.json(); if(typeof contentId!=="string") return NextResponse.json({error:"Geçerli bir içerik seçin."},{status:400}); const result=await addToLibrary(contentId); if(!result)return NextResponse.json({error:"İçerik bulunamadı."},{status:404});return NextResponse.json({data:result},{status:201}); } catch(error) { return NextResponse.json({ error: error instanceof Error&&error.message==="CONFLICT" ? "Bu içerik zaten kütüphanenizde." : "Kütüphane kaydı oluşturulamadı." }, { status: error instanceof Error&&error.message==="CONFLICT"?409:500 }); } }

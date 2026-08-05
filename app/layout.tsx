@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { PrimaryNavigation } from "./primary-navigation";
 
 export const metadata: Metadata = {
   title: "Mosaica",
@@ -13,10 +14,10 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="tr"
       className="h-full antialiased"
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col"><PrimaryNavigation />{children}</body>
     </html>
   );
 }
