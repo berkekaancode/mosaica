@@ -1,0 +1,10 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+const appServices = vi.hoisted(() => ({ getConsumptionHistory: vi.fn(), recordConsumptionEvent: vi.fn() })); vi.mock("@/lib/app-services", () => appServices);
+import { GET, POST } from "@/app/api/library-entries/[entryId]/consumption-events/route";
+const context = { params: Promise.resolve({ entryId: "40000000-0000-4000-8000-000000000001" }) };
+describe("consumption events route", () => {
+  beforeEach(() => vi.resetAllMocks());
+  it("returns persisted history data", async () => { appServices.getConsumptionHistory.mockResolvedValue({ consumptionCount: 2, events: [{ id: "event", occurredAt: "2026-03-01T12:00:00.000Z" }] }); const response = await GET(new Request("http://localhost"), context); expect(response.status).toBe(200); expect((await response.json()).data.consumptionCount).toBe(2); });
+  it("validates date and unsupported notes, then records valid input", async () => { expect((await POST(new Request("http://localhost", { method: "POST", body: JSON.stringify({ occurredAt: "bad" }) }), context)).status).toBe(400); expect((await POST(new Request("http://localhost", { method: "POST", body: JSON.stringify({ occurredAt: "2026-01-01", note: "x" }) }), context)).status).toBe(400); appServices.recordConsumptionEvent.mockResolvedValue(true); const response = await POST(new Request("http://localhost", { method: "POST", body: JSON.stringify({ occurredAt: "2026-01-01" }) }), context); expect(response.status).toBe(201); expect(appServices.recordConsumptionEvent).toHaveBeenCalledWith("40000000-0000-4000-8000-000000000001", "2026-01-01"); });
+  it("maps invalid IDs and missing records consistently", async () => { appServices.getConsumptionHistory.mockRejectedValue(new Error("INVALID_ENTRY_ID")); expect((await GET(new Request("http://localhost"), context)).status).toBe(400); appServices.recordConsumptionEvent.mockResolvedValue(false); expect((await POST(new Request("http://localhost", { method: "POST", body: JSON.stringify({ occurredAt: "2026-01-01" }) }), context)).status).toBe(404); });
+});

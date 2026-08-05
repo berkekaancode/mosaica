@@ -3,6 +3,7 @@ import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "@/app/generated/prisma/client";
 import { PrismaLibraryEntryRepository } from "@/src/infrastructure/persistence/prisma/repositories/prisma-library-entry-repository";
 import { LibraryEntry, Rating } from "@/src/domain/library-entry/library-entry";
+import { GetConsumptionHistoryService, RecordConsumptionService } from "@/src/application/library-entry/consumption-history";
 
 const client = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: "file:./prisma/epic1-verification.db" }) });
 const userId = "10000000-0000-4000-8000-000000000001";
@@ -49,5 +50,12 @@ describe("SQLite persistence foundation", () => {
     const withNote = await repository.findById(entryId);
     await repository.save(LibraryEntry.create({ ...withNote!.properties, personalNote: undefined }));
     persisted = await client.libraryEntry.findUnique({ where: { id: entryId } }); expect(persisted?.personalNote).toBeNull(); expect(persisted?.favorite).toBe(true);
+  });
+  it("persists consumption events and reloads a newest-first derived history", async () => {
+    const repository = new PrismaLibraryEntryRepository(client); const user = { getCurrentUserId: async () => userId };
+    const record = new RecordConsumptionService(repository, user); await record.record(entryId, "2026-02-01"); await record.record(entryId, "2026-03-01");
+    const reloaded = await new GetConsumptionHistoryService(repository, user).get(entryId);
+    expect(reloaded?.consumptionCount).toBe(3); expect(reloaded?.events.map((event) => event.occurredAt.slice(0, 10))).toEqual(["2026-03-01", "2026-02-01", "2026-01-01"]);
+    expect(await client.consumptionEvent.count({ where: { libraryEntryId: entryId } })).toBe(3);
   });
 });
