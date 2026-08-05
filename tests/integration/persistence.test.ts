@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "@/app/generated/prisma/client";
+import { PrismaLibraryEntryRepository } from "@/src/infrastructure/persistence/prisma/repositories/prisma-library-entry-repository";
+import { LibraryEntry, Rating } from "@/src/domain/library-entry/library-entry";
 
 const client = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: "file:./prisma/epic1-verification.db" }) });
 const userId = "10000000-0000-4000-8000-000000000001";
@@ -29,5 +31,14 @@ describe("SQLite persistence foundation", () => {
     await client.collection.delete({ where: { id: collection.id } }); await client.tag.delete({ where: { id: tag.id } });
     expect(await client.libraryEntry.findUnique({ where: { id: entryId } })).not.toBeNull();
     expect(await client.collectionEntry.count()).toBe(0); expect(await client.entryTag.count()).toBe(0);
+  });
+  it("persists a rating update through the repository", async () => {
+    const repository = new PrismaLibraryEntryRepository(client);
+    const current = await repository.findById(entryId);
+    expect(current).not.toBeNull();
+    await repository.save(LibraryEntry.create({ ...current!.properties, rating: Rating.create(87) }));
+    const refreshed = await repository.findById(entryId);
+    expect(refreshed?.properties.rating?.tenths).toBe(87);
+    expect((await client.libraryEntry.findUnique({ where: { id: entryId } }))?.ratingTenths).toBe(87);
   });
 });
