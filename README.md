@@ -17,4 +17,4 @@ npm run prisma:migrate -- --name core_domain_foundation
 npm run quality
 ```
 
-Run unit tests with `npm run test:unit`. Architecture documentation is in `docs/architecture/`. The current implementation establishes the core Domain and persistence foundation; API and UI work are intentionally not included.
+Run unit tests with `npm run test:unit`. Start the app with `npm run dev`. This local v0.x build uses one deterministic local owner and has no production authentication. Primary routes: `/`, `/discover`, `/library`, `/collections`, and `/profile`. Architecture documentation is in `docs/architecture/`.

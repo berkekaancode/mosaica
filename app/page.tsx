@@ -1,15 +1,6 @@
-export default function Home() {
-  return (
-    <main>
-      <h1>Mosaica</h1>
-      <p>Kişisel Kültür Arşivi Sistemi</p>
-
-      <section>
-        <h2>Hoş geldiniz</h2>
-        <p>
-          Kişisel kültür arşivinizi oluşturun, düzenleyin ve keşfedin.
-        </p>
-      </section>
-    </main>
-  );
-}
+"use client";
+import { FormEvent, useEffect, useState } from "react";
+type Content = { id: string; title: string; mediaType: string };
+type Entry = { id: string; content: Content; appreciationLevel: string; favorite: boolean; consumptionCount: number };
+const labels: Record<string,string> = { MOVIE:"Film", TV_SERIES:"Dizi", GAME:"Oyun", BOOK:"Kitap", LIKED:"Beğenildi" };
+export default function Home() { const [contents,setContents]=useState<Content[]>([]); const [entries,setEntries]=useState<Entry[]>([]); const [title,setTitle]=useState(""); const [mediaType,setMediaType]=useState("MOVIE"); const [message,setMessage]=useState(""); const refresh=async()=>{const [c,l]=await Promise.all([fetch("/api/contents"),fetch("/api/library-entries")]);setContents((await c.json()).data);setEntries((await l.json()).data)}; useEffect(()=>{const timer=setTimeout(()=>{void refresh()},0);return()=>clearTimeout(timer)},[]); const create=async(e:FormEvent)=>{e.preventDefault();const r=await fetch("/api/contents",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({title,mediaType})});const b=await r.json();setMessage(b.error??"İçerik eklendi.");if(r.ok){setTitle("");refresh()}}; const add=async(id:string)=>{const r=await fetch("/api/library-entries",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({contentId:id})});const b=await r.json();setMessage(b.error??"Kütüphaneye eklendi.");if(r.ok)refresh()}; return <main><header><strong>Mosaica</strong><nav>Ana Sayfa　 Keşfet　 Kütüphane　 Koleksiyonlar　 Profil</nav></header><section className="hero"><p>Kişisel kültür arşivin</p><h1>Hatırladığın her şey için sakin bir yer.</h1><p>{entries.length} eser arşivinde.</p></section><section className="grid"><form onSubmit={create}><h2>Yeni içerik oluştur</h2><label>Başlık<input value={title} onChange={e=>setTitle(e.target.value)} required /></label><label>Tür<select value={mediaType} onChange={e=>setMediaType(e.target.value)}>{Object.keys(labels).slice(0,4).map(x=><option key={x} value={x}>{labels[x]}</option>)}</select></label><button>İçerik ekle</button>{message&&<p role="status">{message}</p>}</form><article><h2>Kütüphanem</h2>{entries.length?entries.map(e=><div className="entry" key={e.id}><b>{e.content.title}</b><span>{labels[e.content.mediaType]} · {e.appreciationLevel} · {e.consumptionCount} deneyim</span></div>):<p>Henüz arşivinde içerik yok.</p>}</article></section><section><h2>Keşfet</h2><div className="cards">{contents.map(c=><article className="card" key={c.id}><b>{c.title}</b><span>{labels[c.mediaType]}</span><button onClick={()=>add(c.id)}>Kütüphaneye ekle</button></article>)}</div></section></main> }
