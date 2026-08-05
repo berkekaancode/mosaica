@@ -41,4 +41,13 @@ describe("SQLite persistence foundation", () => {
     expect(refreshed?.properties.rating?.tenths).toBe(87);
     expect((await client.libraryEntry.findUnique({ where: { id: entryId } }))?.ratingTenths).toBe(87);
   });
+  it("persists independent preferences and can clear a personal note", async () => {
+    const repository = new PrismaLibraryEntryRepository(client); const current = await repository.findById(entryId);
+    await repository.save(LibraryEntry.create({ ...current!.properties, appreciationLevel: "LEGENDARY", favorite: true, status: "COMPLETED", personalNote: "Kalıcı not" }));
+    let persisted = await client.libraryEntry.findUnique({ where: { id: entryId } });
+    expect(persisted).toMatchObject({ ratingTenths: 87, appreciationLevel: "LEGENDARY", favorite: true, status: "COMPLETED", personalNote: "Kalıcı not" });
+    const withNote = await repository.findById(entryId);
+    await repository.save(LibraryEntry.create({ ...withNote!.properties, personalNote: undefined }));
+    persisted = await client.libraryEntry.findUnique({ where: { id: entryId } }); expect(persisted?.personalNote).toBeNull(); expect(persisted?.favorite).toBe(true);
+  });
 });

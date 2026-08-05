@@ -7,6 +7,10 @@ export type LibraryEntryDetail = {
   id: string;
   content: { id: string; title: string; mediaType: string; originalTitle?: string; releaseYear?: number; synopsis?: string };
   rating: number | null;
+  appreciationLevel: "DISLIKED" | "LIKED" | "LOVED" | "LEGENDARY";
+  favorite: boolean;
+  status: "COMPLETED" | "PAUSED" | "DROPPED" | "IN_PROGRESS" | null;
+  personalNote: string | null;
 };
 
 export class LibraryEntryDetailService {
@@ -22,7 +26,7 @@ export class LibraryEntryDetailService {
     const content = await this.contents.findById(entry.properties.contentId.value);
     if (!content) return null;
     const value = content.properties;
-    return { id: entry.properties.id.value, content: { id: value.id.value, title: value.title, mediaType: value.mediaType, originalTitle: value.originalTitle, releaseYear: value.releaseYear, synopsis: value.synopsis }, rating: entry.properties.rating ? entry.properties.rating.tenths / 10 : null };
+    return { id: entry.properties.id.value, content: { id: value.id.value, title: value.title, mediaType: value.mediaType, originalTitle: value.originalTitle, releaseYear: value.releaseYear, synopsis: value.synopsis }, rating: entry.properties.rating ? entry.properties.rating.tenths / 10 : null, appreciationLevel: entry.appreciationLevel, favorite: entry.favorite, status: entry.properties.status ?? null, personalNote: entry.properties.personalNote ?? null };
   }
 
   async updateRating(entryId: string, rating: number): Promise<LibraryEntryDetail | null> {
