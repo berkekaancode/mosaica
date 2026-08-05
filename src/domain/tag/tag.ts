@@ -1,0 +1,2 @@
+import { DomainValidationError } from "@/src/domain/shared/domain-error"; import { EntityId } from "@/src/domain/shared/entity-id";
+export class Tag { private constructor(readonly id: EntityId, readonly userId: EntityId, readonly name: string) {} static create(id: EntityId, userId: EntityId, name: string) { const normalized = name.trim(); if (!normalized) throw new DomainValidationError("Tag name is required."); return new Tag(id, userId, normalized); } }

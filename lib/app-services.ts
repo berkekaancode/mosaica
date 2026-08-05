@@ -10,6 +10,8 @@ import { LibraryEntryPreferencesService } from "@/src/application/library-entry/
 import { GetConsumptionHistoryService, RecordConsumptionService } from "@/src/application/library-entry/consumption-history";
 import { PrismaCollectionRepository } from "@/src/infrastructure/persistence/prisma/repositories/prisma-collection-repository";
 import { AddEntryToCollectionService, CreateCollectionService, DeleteCollectionService, GetCollectionService, GetCollectionsService, RemoveEntryFromCollectionService } from "@/src/application/collection/collection-services";
+import { PrismaTagRepository } from "@/src/infrastructure/persistence/prisma/repositories/prisma-tag-repository";
+import { CreateTagService, DeleteTagService, GetTagsService, TagLibraryEntryService, UntagLibraryEntryService } from "@/src/application/tag/tag-services";
 
 const owner = new LocalV0UserContext();
 export async function listContents(query = "") { return prisma.content.findMany({ where: { title: { contains: query } }, orderBy: { createdAt: "desc" } }); }
@@ -22,6 +24,7 @@ const consumptionHistory = new GetConsumptionHistoryService(new PrismaLibraryEnt
 const recordConsumption = new RecordConsumptionService(new PrismaLibraryEntryRepository(prisma), owner);
 const collections = new PrismaCollectionRepository(prisma); const entries = new PrismaLibraryEntryRepository(prisma); const contents = new PrismaContentRepository(prisma);
 const createCollection = new CreateCollectionService(collections, owner); const getCollections = new GetCollectionsService(collections, entries, owner); const getCollection = new GetCollectionService(collections, entries, contents, owner); const addCollectionEntry = new AddEntryToCollectionService(collections, entries, owner); const removeCollectionEntry = new RemoveEntryFromCollectionService(collections, owner); const deleteCollection = new DeleteCollectionService(collections, owner);
+const tags = new PrismaTagRepository(prisma); const createTag = new CreateTagService(tags, owner); const getTags = new GetTagsService(tags, entries, owner); const tagEntry = new TagLibraryEntryService(tags, entries, owner); const untagEntry = new UntagLibraryEntryService(tags, owner); const deleteTag = new DeleteTagService(tags, owner);
 export async function getLibraryEntryDetail(entryId: string) { return libraryEntryDetails.get(entryId); }
 export async function updateLibraryEntryRating(entryId: string, rating: number) { return libraryEntryDetails.updateRating(entryId, rating); }
 async function updatedDetail(updated: boolean, entryId: string) { return updated ? libraryEntryDetails.get(entryId) : null; }
@@ -32,3 +35,4 @@ export async function updateLibraryEntryPersonalNote(entryId: string, value: str
 export async function getConsumptionHistory(entryId: string) { return consumptionHistory.get(entryId); }
 export async function recordConsumptionEvent(entryId: string, occurredAt: string) { return recordConsumption.record(entryId, occurredAt); }
 export const createUserCollection = (name: string) => createCollection.create(name); export const listUserCollections = () => getCollections.list(); export const getUserCollection = (id: string) => getCollection.get(id); export const getCollectionsForEntry = (id: string) => getCollections.forEntry(id); export const addEntryToUserCollection = (collectionId: string, entryId: string) => addCollectionEntry.add(collectionId, entryId); export const removeEntryFromUserCollection = (collectionId: string, entryId: string) => removeCollectionEntry.remove(collectionId, entryId); export const deleteUserCollection = (id: string) => deleteCollection.delete(id);
+export const createUserTag = (name: string) => createTag.create(name); export const listUserTags = () => getTags.list(); export const getUserTag = (id: string) => getTags.get(id); export const getTagsForEntry = (id: string) => getTags.forEntry(id); export const tagUserEntry = (tagId: string, entryId: string) => tagEntry.attach(tagId, entryId); export const untagUserEntry = (tagId: string, entryId: string) => untagEntry.detach(tagId, entryId); export const deleteUserTag = (id: string) => deleteTag.delete(id);

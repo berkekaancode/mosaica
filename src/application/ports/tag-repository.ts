@@ -1,0 +1,2 @@
+import { Tag } from "@/src/domain/tag/tag";
+export interface TagRepository { save(tag: Tag): Promise<void>; findById(id: string): Promise<Tag | null>; listByOwnerId(userId: string): Promise<readonly Tag[]>; listByEntryId(entryId: string): Promise<readonly Tag[]>; existsByOwnerAndName(userId: string, name: string): Promise<boolean>; hasEntry(tagId: string, entryId: string): Promise<boolean>; attach(tagId: string, entryId: string): Promise<void>; detach(tagId: string, entryId: string): Promise<void>; delete(id: string): Promise<void>; }

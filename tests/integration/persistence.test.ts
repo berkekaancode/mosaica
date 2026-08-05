@@ -61,4 +61,7 @@ describe("SQLite persistence foundation", () => {
   it("persists collection links, prevents duplicates, and preserves entries after collection deletion", async () => {
     const collection = await client.collection.create({ data: { id: "10000000-0000-4000-8000-000000000008", userId, name: "Koleksiyon" } }); await client.collectionEntry.create({ data: { collectionId: collection.id, libraryEntryId: entryId } }); expect(await client.collectionEntry.count({ where: { collectionId: collection.id } })).toBe(1); await expect(client.collectionEntry.create({ data: { collectionId: collection.id, libraryEntryId: entryId } })).rejects.toThrow(); await client.collection.delete({ where: { id: collection.id } }); expect(await client.libraryEntry.findUnique({ where: { id: entryId } })).not.toBeNull(); expect(await client.collectionEntry.count({ where: { collectionId: collection.id } })).toBe(0);
   });
+  it("persists tag links, prevents duplicates, and preserves entries after tag deletion", async () => {
+    const tag = await client.tag.create({ data: { id: "10000000-0000-4000-8000-000000000009", userId, name: "sakin" } }); await client.entryTag.create({ data: { tagId: tag.id, libraryEntryId: entryId } }); await expect(client.entryTag.create({ data: { tagId: tag.id, libraryEntryId: entryId } })).rejects.toThrow(); await client.tag.delete({ where: { id: tag.id } }); expect(await client.libraryEntry.findUnique({ where: { id: entryId } })).not.toBeNull(); expect(await client.entryTag.count({ where: { tagId: tag.id } })).toBe(0);
+  });
 });
