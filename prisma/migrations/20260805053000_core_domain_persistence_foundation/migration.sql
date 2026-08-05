@@ -1,0 +1,33 @@
+-- SQLite-compatible initial Core Domain and Persistence Foundation.
+PRAGMA foreign_keys=ON;
+
+CREATE TABLE "users" ("id" TEXT NOT NULL PRIMARY KEY, "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" DATETIME NOT NULL);
+CREATE TABLE "contents" ("id" TEXT NOT NULL PRIMARY KEY, "title" TEXT NOT NULL, "mediaType" TEXT NOT NULL, "originalTitle" TEXT, "releaseYear" INTEGER, "runtimeMinutes" INTEGER, "originalLanguage" TEXT, "country" TEXT, "coverReference" TEXT, "synopsis" TEXT, "externalIdentifiers" TEXT, "seriesId" TEXT, "universeId" TEXT, "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" DATETIME NOT NULL, CONSTRAINT "contents_seriesId_fkey" FOREIGN KEY ("seriesId") REFERENCES "series" ("id") ON DELETE RESTRICT ON UPDATE CASCADE, CONSTRAINT "contents_universeId_fkey" FOREIGN KEY ("universeId") REFERENCES "universes" ("id") ON DELETE RESTRICT ON UPDATE CASCADE);
+CREATE TABLE "library_entries" ("id" TEXT NOT NULL PRIMARY KEY, "userId" TEXT NOT NULL, "contentId" TEXT NOT NULL, "ratingTenths" INTEGER, "appreciationLevel" TEXT NOT NULL DEFAULT 'LIKED', "status" TEXT, "archiveLocation" TEXT NOT NULL, "favorite" BOOLEAN NOT NULL DEFAULT false, "personalNote" TEXT, "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" DATETIME NOT NULL, CONSTRAINT "library_entries_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users" ("id") ON DELETE RESTRICT ON UPDATE CASCADE, CONSTRAINT "library_entries_contentId_fkey" FOREIGN KEY ("contentId") REFERENCES "contents" ("id") ON DELETE RESTRICT ON UPDATE CASCADE);
+CREATE TABLE "collections" ("id" TEXT NOT NULL PRIMARY KEY, "userId" TEXT NOT NULL, "name" TEXT NOT NULL, CONSTRAINT "collections_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users" ("id") ON DELETE RESTRICT ON UPDATE CASCADE);
+CREATE TABLE "tags" ("id" TEXT NOT NULL PRIMARY KEY, "userId" TEXT NOT NULL, "name" TEXT NOT NULL, CONSTRAINT "tags_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users" ("id") ON DELETE RESTRICT ON UPDATE CASCADE);
+CREATE TABLE "persons" ("id" TEXT NOT NULL PRIMARY KEY, "name" TEXT NOT NULL);
+CREATE TABLE "genres" ("id" TEXT NOT NULL PRIMARY KEY, "name" TEXT NOT NULL);
+CREATE TABLE "series" ("id" TEXT NOT NULL PRIMARY KEY, "name" TEXT NOT NULL);
+CREATE TABLE "universes" ("id" TEXT NOT NULL PRIMARY KEY, "name" TEXT NOT NULL);
+CREATE TABLE "content_persons" ("contentId" TEXT NOT NULL, "personId" TEXT NOT NULL, "role" TEXT NOT NULL, PRIMARY KEY ("contentId","personId","role"), FOREIGN KEY ("contentId") REFERENCES "contents"("id") ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY ("personId") REFERENCES "persons"("id") ON DELETE RESTRICT ON UPDATE CASCADE);
+CREATE TABLE "content_genres" ("contentId" TEXT NOT NULL, "genreId" TEXT NOT NULL, PRIMARY KEY ("contentId","genreId"), FOREIGN KEY ("contentId") REFERENCES "contents"("id") ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY ("genreId") REFERENCES "genres"("id") ON DELETE RESTRICT ON UPDATE CASCADE);
+CREATE TABLE "collection_entries" ("collectionId" TEXT NOT NULL, "libraryEntryId" TEXT NOT NULL, PRIMARY KEY ("collectionId","libraryEntryId"), FOREIGN KEY ("collectionId") REFERENCES "collections"("id") ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY ("libraryEntryId") REFERENCES "library_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE "entry_tags" ("libraryEntryId" TEXT NOT NULL, "tagId" TEXT NOT NULL, PRIMARY KEY ("libraryEntryId","tagId"), FOREIGN KEY ("libraryEntryId") REFERENCES "library_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY ("tagId") REFERENCES "tags"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE "consumption_events" ("id" TEXT NOT NULL PRIMARY KEY, "libraryEntryId" TEXT NOT NULL, "occurredAt" DATETIME NOT NULL, "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY ("libraryEntryId") REFERENCES "library_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE UNIQUE INDEX "library_entries_userId_contentId_key" ON "library_entries"("userId","contentId");
+CREATE UNIQUE INDEX "collections_userId_name_key" ON "collections"("userId","name");
+CREATE UNIQUE INDEX "tags_userId_name_key" ON "tags"("userId","name");
+CREATE UNIQUE INDEX "persons_name_key" ON "persons"("name");
+CREATE UNIQUE INDEX "genres_name_key" ON "genres"("name");
+CREATE UNIQUE INDEX "series_name_key" ON "series"("name");
+CREATE UNIQUE INDEX "universes_name_key" ON "universes"("name");
+CREATE INDEX "contents_mediaType_idx" ON "contents"("mediaType");
+CREATE INDEX "contents_seriesId_idx" ON "contents"("seriesId");
+CREATE INDEX "contents_universeId_idx" ON "contents"("universeId");
+CREATE INDEX "library_entries_userId_archiveLocation_idx" ON "library_entries"("userId","archiveLocation");
+CREATE INDEX "consumption_events_libraryEntryId_occurredAt_idx" ON "consumption_events"("libraryEntryId","occurredAt");
+CREATE INDEX "content_persons_personId_idx" ON "content_persons"("personId");
+CREATE INDEX "content_genres_genreId_idx" ON "content_genres"("genreId");
+CREATE INDEX "collection_entries_libraryEntryId_idx" ON "collection_entries"("libraryEntryId");
+CREATE INDEX "entry_tags_tagId_idx" ON "entry_tags"("tagId");

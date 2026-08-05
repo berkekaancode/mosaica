@@ -17,6 +17,8 @@
 /.next/
 /out/
 /app/generated/prisma/
+/prisma/*.db
+/prisma/*.db-journal
 
 # production
 /build
