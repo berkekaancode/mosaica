@@ -58,4 +58,7 @@ describe("SQLite persistence foundation", () => {
     expect(reloaded?.consumptionCount).toBe(3); expect(reloaded?.events.map((event) => event.occurredAt.slice(0, 10))).toEqual(["2026-03-01", "2026-02-01", "2026-01-01"]);
     expect(await client.consumptionEvent.count({ where: { libraryEntryId: entryId } })).toBe(3);
   });
+  it("persists collection links, prevents duplicates, and preserves entries after collection deletion", async () => {
+    const collection = await client.collection.create({ data: { id: "10000000-0000-4000-8000-000000000008", userId, name: "Koleksiyon" } }); await client.collectionEntry.create({ data: { collectionId: collection.id, libraryEntryId: entryId } }); expect(await client.collectionEntry.count({ where: { collectionId: collection.id } })).toBe(1); await expect(client.collectionEntry.create({ data: { collectionId: collection.id, libraryEntryId: entryId } })).rejects.toThrow(); await client.collection.delete({ where: { id: collection.id } }); expect(await client.libraryEntry.findUnique({ where: { id: entryId } })).not.toBeNull(); expect(await client.collectionEntry.count({ where: { collectionId: collection.id } })).toBe(0);
+  });
 });
