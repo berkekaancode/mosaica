@@ -46,10 +46,17 @@ return (
       <div className="home-hero__content">
         <p className="home-kicker">Kişisel kültür arşivin</p>
 
-        <h1>
-          Kendi <em>Dünyana</em>
-          <br />
-          Hoş Geldin
+        <h1
+          className="home-hero__title"
+          style={{
+            fontFamily: "var(--font-bodoni-moda)",
+            fontWeight: 600,
+            letterSpacing: "-0.035em",
+            lineHeight: 0.9,
+          }}
+        >
+          <span className="home-hero__title-line">Kendi <em>Dünyana</em></span>
+          <span className="home-hero__title-line">Hoş Geldin</span>
         </h1>
 
         <p className="home-hero__copy">
